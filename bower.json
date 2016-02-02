@@ -1,0 +1,8 @@
+{
+  "name": "angular-bzgooglemap",
+  "version": "1.0.0",
+  "main": "./angular-bzgooglemap.js",
+  "ignore": [],
+  "dependencies": {
+  }
+}
