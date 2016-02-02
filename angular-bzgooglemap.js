@@ -1,34 +1,34 @@
 (function(){
-	'use strict';
+    'use strict';
 
-	angular
-	.module('ngGoogleMap', [])
-	.service('bzGoogleMapSvc', bzGoogleMapSvc)
-	.directive('bzGoogleMap', bzGoogleMap);
+    angular
+    .module('ngGoogleMap', [])
+    .service('bzGoogleMapSvc', bzGoogleMapSvc)
+    .directive('bzGoogleMap', bzGoogleMap);
 
-	function bzGoogleMapSvc($window, $q){
-		var deferred = $q.defer();
+    function bzGoogleMapSvc($window, $q){
+        var deferred = $q.defer();
 
-		$window.initMap = function () {
-			deferred.resolve();
-		};
+        $window.initMap = function () {
+            deferred.resolve();
+        };
 
-		loadScript();
+        loadScript();
 
-		function loadScript() {
-			if (document.getElementById('googleMapScript')) {return;}
-			var script = document.createElement('script');
-			script.src = '//maps.googleapis.com/maps/api/js?sensor=false&language=en&callback=initMap';
-			script.id = 'googleMapScript';
-			document.body.appendChild(script);
-		}
+        function loadScript() {
+            if (document.getElementById('googleMapScript')) {return;}
+            var script = document.createElement('script');
+            script.src = '//maps.googleapis.com/maps/api/js?sensor=false&language=en&callback=initMap';
+            script.id = 'googleMapScript';
+            document.body.appendChild(script);
+        }
 
-		return {
-			onReady: function(callback) {
-				deferred.promise.then(callback);
-			}
-		};
-	}
+        return {
+            onReady: function(callback) {
+                deferred.promise.then(callback);
+            }
+        };
+    }
 
     function bzGoogleMap($window, $timeout, bzGoogleMapSvc) {
         return {
@@ -94,9 +94,9 @@
                             })(marker, i));
                         }
 
-                        angular.element($window).on('resize', helperJs.debounce(function() {
+                        angular.element($window).on('resize', function() {
                             map.setCenter(gLocation);
-                        }, 500));
+                        });
                     }, 500);
                 }
             }
