@@ -1,7 +1,10 @@
 ```javascript
 angular
 .module('myApp', ['ngGoogleMap'])
+<<<<<<< HEAD
 .config(config)
+=======
+>>>>>>> origin/master
 .controller('myCtrl', myCtrl);
 
 function config($gmapProvider){
