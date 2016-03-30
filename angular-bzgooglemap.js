@@ -3,36 +3,45 @@
 
     angular
     .module('ngGoogleMap', [])
-    .service('bzGoogleMapSvc', bzGoogleMapSvc)
+    .provider('$gmap', gmapProvider)
     .directive('bzGoogleMap', bzGoogleMap);
 
-    function bzGoogleMapSvc($window, $q){
-        var deferred = $q.defer();
-
-        $window.initMap = function () {
-            deferred.resolve();
+    function gmapProvider(){
+        var config = {
+            language: 'vi'
         };
 
-        loadScript();
+        this.setLanguage = function(val) {
+            config.language = val;
+        };
 
-        function loadScript() {
-            if (document.getElementById('googleMapScript')) {return;}
-            var script = document.createElement('script');
-            script.src = '//maps.googleapis.com/maps/api/js?sensor=false&language=en&callback=initMap';
-            script.id = 'googleMapScript';
-            document.body.appendChild(script);
-        }
+        this.$get = function($q, $window) {
+            var gmap = $q.defer();
 
-        return {
-            onReady: function(callback) {
-                deferred.promise.then(callback);
+            loadScript();
+
+            $window.initGoogleMap = function () {
+                gmap.resolve();
+            };
+
+            function loadScript() {
+                if (document.getElementById('googleMapScript')) {return;}
+                var script = document.createElement('script');
+                script.src = 'https://maps.googleapis.com/maps/api/js?sensor=false&language='+config.language+'&callback=initGoogleMap';
+                script.id = 'googleMapScript';
+                document.body.appendChild(script);
             }
+
+            return {
+                ready: function(callback) {
+                    gmap.promise.then(callback);
+                }
+            };
         };
     }
 
-    function bzGoogleMap($window, $timeout, bzGoogleMapSvc) {
+    function bzGoogleMap($window, $gmap) {
         return {
-            restrict: 'A',
             scope: {
                 mapData: '=',
                 mapStyle: '='
@@ -40,11 +49,15 @@
             link: function(scope, iElement, iAttrs) {
                 var map, myInfoWinow, gLocation;
 
-                if (scope.mapData.length) {
-                    bzGoogleMapSvc.onReady(function() {
+                scope.$on('destroy', function(){
+                    angular.element($window).off('resize.gmap');
+                });
+
+                $gmap.ready(function() {
+                    if (scope.mapData) {
                         initialize();
-                    });
-                }
+                    }
+                });
 
                 function infoWindow(marker, text, width) {
                     myInfoWinow.setOptions({
@@ -69,35 +82,33 @@
                 }
 
                 function initialize() {
-                    $timeout(function() {
-                        gLocation = new google.maps.LatLng(scope.mapData[0].lat, scope.mapData[0].lng);
+                    gLocation = new google.maps.LatLng(scope.mapData[0].lat, scope.mapData[0].lng);
 
-                        var mapOptions = {
-                            zoom: parseInt(iAttrs.mapZoom) || 16,
-                            center: gLocation,
-                            mapTypeId: google.maps.MapTypeId.ROADMAP,
-                            scrollwheel: iAttrs.mapWheel == 'true',
-                            styles: scope.mapStyle | [],
-                            disableDefaultUI: iAttrs.mapUi === 'false'
-                        };
+                    var mapOptions = {
+                        zoom: parseInt(iAttrs.mapZoom) || 16,
+                        center: gLocation,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP,
+                        scrollwheel: iAttrs.mapWheel == 'true',
+                        styles: scope.mapStyle | [],
+                        disableDefaultUI: iAttrs.mapUi === 'false'
+                    };
 
-                        map = new google.maps.Map(document.getElementById(iAttrs.id), mapOptions);
+                    map = new google.maps.Map(document.getElementById(iAttrs.id), mapOptions);
 
-                        myInfoWinow = new google.maps.InfoWindow();
+                    myInfoWinow = new google.maps.InfoWindow();
 
-                        for (var i = 0; i < scope.mapData.length; i++) {
-                            var marker = addMarker(scope.mapData[i].lat, scope.mapData[i].lng, scope.mapData[i].icon, scope.mapData[i].title);
-                            google.maps.event.addListener(marker, 'click', (function(marker, i) {
-                                return function() {
-                                    infoWindow(marker, scope.mapData[i].content);
-                                };
-                            })(marker, i));
-                        }
+                    for (var i = 0; i < scope.mapData.length; i++) {
+                        var marker = addMarker(scope.mapData[i].lat, scope.mapData[i].lng, scope.mapData[i].icon, scope.mapData[i].title);
+                        google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                            return function() {
+                                infoWindow(marker, scope.mapData[i].content);
+                            };
+                        })(marker, i));
+                    }
 
-                        angular.element($window).on('resize', function() {
-                            map.setCenter(gLocation);
-                        });
-                    }, 500);
+                    angular.element($window).on('resize.gmap', function() {
+                        map.setCenter(gLocation);
+                    });
                 }
             }
         };
