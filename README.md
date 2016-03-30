@@ -8,7 +8,7 @@ function config($gmapProvider){
     $gmapProvider.setLanguage('vi');
 }
 
-function myCtrl($scope, $facebook) {
+function myCtrl($scope) {
 	$scope.mapData = [
 		{icon: 'images/marker.png', lat: 12.239973, lng: 109.193432, title: 'title 1', content: ''},
 		{icon: 'images/marker.png', lat: 12.239082, lng: 109.193507, title: 'title 2', content: 'content 2'}
